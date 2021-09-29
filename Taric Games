@@ -1,0 +1,252 @@
+library(yarrr) #the library command opens whatever installed package you wish to open and 
+#imports commands within that package
+library(car) #opens car package for this R file
+library(manipulateWidget)
+library(shiny)
+library(rgl) #loads the rgl package which will allow us to view some 3D scatterplots of taric jg data
+library(readxl)
+library(ggplot2)
+library(tidyr)
+
+setwd("/Users/User/Desktop/League of Legends Excel Databases")
+getwd()
+taricJg_data <- read_excel("TaricGames.xlsx")
+taricJg.df = taricJg_data
+
+head(taricJg.df)
+summary(taricJg.df)
+plot(taricJg.df)
+
+names(taricJg.df)
+par(mfrow=c(2,2))
+plot(taricJg.df$Kills ~ taricJg.df$Assists)
+plot(taricJg.df$Kills ~ taricJg.df$Deaths)
+plot(taricJg.df$Kills ~ taricJg.df$CSPerMinute)
+plot(taricJg.df$WinLoss ~ taricJg.df$Vision) #first term gets plotted on the y axis, second term gets plotted on the x
+
+#note that the hatvalues command, used to identify outliers, CANNOT be applied to dataframes!
+
+predictJg_logistic.fits = glm(WinLoss ~ Conqueror + Glacial + PTA + Ghost + Flash + Melee + Ranged + Kayn, 
+                              data = taricJg.df, family = binomial)
+
+#creates a predictive logistic model of 6 predictors and 1 response
+#aims to predict the odds of winning a given game before it has begun
+
+plot(predictJg_logistic.fits)
+summary(predictJg_logistic.fits)
+
+#terrible model as none of our p values are statistically significant with enormous standard errors
+#after changing some of the binary terms the model improved slightly but all p values are still 0.5 or greater
+#ranged variable is not included for some reason
+
+predictJg_logistic.aic = step(predictJg_logistic.fits)
+
+summary(predictJg_logistic.aic)
+
+#p values are somewhat better with multiple variables eliminated but the model is still very bad
+#after changing all of the terms, the AIC eliminates every predictor from the model and intercept is not statistically significant
+#third update: aic eliminates all except conqueror, glacial, and PTA and all have p values = 0.985. this is for n = 152
+#fourth update: aic eliminates all except conq, glacial, pta, flash, and ghost. all have p values > 0.99. this is for n = 200
+
+predictJg_logistic2 = glm(WinLoss ~ Sunderer + Conqueror, data = taricJg.df)
+summary(predictJg_logistic2)
+plot(predictJg_logistic2)
+vif(predictJg_logistic2) #very low collinearity here with VIF 1.2 for both
+
+vision_logistic.fits = glm(WinLoss ~ Vision, data = taricJg.df, family = binomial)
+plot(vision_logistic.fits)
+summary(vision_logistic.fits) #both the intercept and slope coefficients are statistically significant
+#retains statistical significance tho with p = 0.01 instead of 0.003 at n = 200
+#excellent statistical significance p = 0.0007 at n = 225. 
+
+#POSITIVE association between vision and winloss B1 = 0.03732
+#slight positive association overall wr 0.05 = B1 n = 225
+
+names(vision_logistic.fits)
+
+par(mfrow=c(1,1))
+plot(vision_logistic.fits$fitted.values ~ vision_logistic.fits$residuals)
+
+vision_logistic.fits$linear.predictors #not sure what this does..
+names(vision_logistic.fits)
+
+vision_logistic.fits$residuals #lists all the residuals for every instance of x in the logistic model
+names(vision_logistic.fits)
+
+vision_logistic.fits$coefficients #indicates an intercept of -1.431 and a positive slope of 0.0542
+confint(vision_logistic.fits) #this proves that the intercept and slope are almost certainly nonzero since 0 is not included
+#in the 95% confidence interval. null is rejected
+
+names(taricJg.df)
+
+par(mfrow=c(2,2))
+winrate_logistic = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Vision + PTA + Shurelyias + Sunderer + Conqueror
+                       + NoMythic + Melee + Ranged + Kayn, data = taricJg.df, family = binomial)
+plot(winrate_logistic)
+summary(winrate_logistic)
+#most of our predictors were found to NOT be statistically significant
+#increasing sample size to n = 200 has helped the model. most predictors statistically significant or borderline significant.
+#worst predictor in this model is sunderer p = 0.879
+
+#n = 225, conq and shurelyias now statistically significant. nomythic and melee lowish p values. sunderer still worst p = 0.86
+
+winrate_logistic.aic = step(winrate_logistic)
+
+summary(winrate_logistic.aic) #most predictors are statistically significant or borderline significant
+#statistical significance achieved for shurelyias and conqueror predictors. NoMythic borderline significance
+
+#for n = 200, all predictors found to be significant except kills which was borderline significant p = 0.098
+
+#after removing all negative binary inputs B1 coefficients make much more sense. NEGATIVE association with winning found for:
+#Deaths, Vision, Shurelyias, Conqueror, and NoMythic. POSITIVE association found for kills, assists, and CSperMin
+#vision and shurelyias coefficients are suspect, rest are straightforward
+
+vif(winrate_logistic.aic)
+#VIF is better for n = 200 model indicating smaller collinearities
+
+#fairly good VIF values with none above 4.5
+#VIF improved with n = 225, no values above 4.1
+
+vif(winrate_logistic) #here we had high VIF values (probable collinearities) for shurelyais, sunderer, and assists
+
+#lets try another model...
+
+names(taricJg.df)
+winrate_logistic3 = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Vision + PTA + Shurelyias + Sunderer + Conqueror
+                        + Glacial + NoMythic + Ghost + Flash + Melee + Ranged, data = taricJg.df, family = binomial)
+plot(winrate_logistic3)
+summary(winrate_logistic3)
+
+#most of the qualitative predictors not found to be statistically significant excepting shurelyias and nomythic
+#melee has low p value of 0.11
+
+#nomythic no longer significant at n = 225 but shurelyias still significant. melee p val = 0.25
+
+winrate_logistic3.aic = step(winrate_logistic3) #this leaves us with the exact same model we had with winrate_logistic.aic above
+
+#for n = 200 the model is different and keeps many of the qualitative predictors: nomythic, conq, shurelyias, melee, and ghost
+summary(winrate_logistic3.aic)
+names(winrate_logistic3.aic)
+winrate_logistic3.aic$coefficients #this gives us the coefficients for the linear model
+
+#this is a surprisingly reasonable model. all coefficients statistically significant except ghost, mlee, and intercept
+#though all 3 have p values 0.166 or below. Kills is borderline significant
+
+#many of the values for coefficients do not make sense so this will need a lot of work...
+#after removing all negative values, coefficients are better but there are still many issues (large negative B1 for shurelyias,
+#melee, and small neg for vision)
+
+SundererWins_logistic = glm(WinLoss ~ Sunderer, data = taricJg.df, family = binomial)
+summary(SundererWins_logistic)
+confint(SundererWins_logistic) #minimal to no relationship exists between buying Sunderer and Winning or Losing
+#p value = 0.163. relationship could be established given changes in other binomial values
+#p value is unchanged from before
+#p value dropped to 0.0691 for n = 200
+#p value dropped to 0.0332 for n = 225. predictor IS statistically significant
+
+#sunderer shown to have a POSITIVE association with winrate B1 = 0.34
+#this value changed to 0.362 for n = 225
+
+PTAwins_logistic = glm(WinLoss ~ PTA, data = taricJg.df, family = binomial)
+summary(PTAwins_logistic) #no relationship between running PTA and winning. p value = 0.869
+#p value dropped slightly to 0.802 after change
+#p value dropped to 0.379 for n = 200
+#p value increased to 0.478 for n = 225 still not significant
+#p value decreased to 0.237 for n = 300
+
+#assuming B1 != 0 the slope is 0.2776 (issue is large standard dev for coefficient)
+
+ConqWins_logistic = glm(WinLoss ~ Conqueror, data = taricJg.df, family = binomial)
+summary(ConqWins_logistic) #no relationship between running conqueror and winning. p value = 0.928
+#p value dropped slightly to 0.876 after change
+#p value dropped again to 0.738 after fixing an error in the data
+#p value dropped to 0.311 for n = 200
+#p value dropped to 0.302 for n = 225 still not significant
+#p = 0.394 for n = 300
+
+ConqWins_logistic = glm(WinLoss ~ Conqueror*Sunderer, data = taricJg.df, family = binomial)
+summary(ConqWins_logistic)
+
+#seems to reject evidence in favor of an interaction between conqueror and sunderer
+
+ShurelyiasWins_logistic = glm(WinLoss ~ Shurelyias, data = taricJg.df, family = binomial)
+summary(ShurelyiasWins_logistic) #no relationship between running Shurelyias and winning (slightly better than Conqueror)
+#p value = 0.900
+#shurelyais data was not changed and neither did the p value
+#improved p value of 0.746 for n = 200. Still not statistically significant
+#improved to p = 0.705 for n = 225
+#improved to p = 0.319 for n = 300
+
+#assuming B1 != 0 there is negative association -0.0966 between shurelyias and winning
+
+GlacialWins_logistic = glm(WinLoss ~ Glacial, data = taricJg.df, family = binomial)
+summary(GlacialWins_logistic) #better relationship but still not statistically significant to establish anything meaningful
+#p value = 0.593
+#slight improvement. new p value = 0.506 for n = 200
+#worse p value p = 0.648 for n = 225
+#p = 0.291 for n = 300
+
+#assuming B1 != 0, slope is -0.2642
+
+NoMythic_logistic = glm(WinLoss ~ NoMythic, data = taricJg.df, family = binomial)
+summary(NoMythic_logistic) #intercept is not statistically significant but slope p value is 0.0848 which is almost 0.05
+#good chance there is a meaningful relationship here
+#altering data did not change the p value
+#borderline statistical significance p value = 0.0564 for n = 200
+#this predictor IS statistically significant p = 0.0246
+
+#strong positive association between nomythic and winning B1 = 0.4644
+#fixed to strong negative association for same value after changing sign
+
+GhostWins_logistic = glm(WinLoss ~ Ghost, data = taricJg.df, family = binomial)
+summary(GhostWins_logistic) #potential for a relationship regarding the slope if other binary values are altered. p value is 0.490
+#p value = 0.442 for n = 200
+#p value = 0.474 for n = 225
+#p value = 0.310 for n = 300
+
+FlashWins_logistic = glm(WinLoss ~ Flash, data = taricJg.df, family = binomial)
+summary(FlashWins_logistic) #no statistical significance. p value = 0.616 for flash
+#worse p value for n = 200. p = 0.663
+#p val = 0.688 for n = 225
+#p val = 0.394 for n = 300
+
+MeleeWins_logistic = glm(WinLoss ~ Melee, data = taricJg.df, family = binomial)
+summary(MeleeWins_logistic) #no relationship. p value = 0.987
+#p value unchanged for n = 200
+#p value 0.251 for n = 300
+
+RangedWins_logistic = glm(WinLoss ~ Ranged, data = taricJg.df, family = binomial)
+summary(RangedWins_logistic) #also no relationship. p value = 0.987
+#improved fit for n = 200. p = 0.734
+#p val = 0.474. slight potential for statistical significance with additional observations
+#p val = 0.2508 for n = 300
+
+KaynWins_logistic = glm(WinLoss ~ Kayn, data = taricJg.df, family = binomial)
+summary(KaynWins_logistic)
+#pval = 0.395
+
+par(mfrow=c(1,1))
+plot(taricJg.df$CSPerMinute)
+CSWins_logistic = glm(WinLoss ~ CSPerMinute, data = taricJg.df, family = binomial)
+newdata3 <- data.frame(CSPerMinute=seq(min(taricJg.df$CSPerMinute), max(taricJg.df$CSPerMinute),len=500))
+newdata3$WinLoss = predict(CSWins_logistic, newdata3, type="response")
+plot(WinLoss ~ CSPerMinute, data=taricJg.df, col="steelblue")  #THIS IS FOR PLOTTING THE LOGISTIC MODEL
+lines(WinLoss ~ CSPerMinute, newdata3, lwd=2)
+
+summary(CSWins_logistic)
+
+CSWins.prob = predict(CSWins_logistic, type="response")
+CSWins.pred = rep("0", dim(taricJg.df)[1])
+CSWins.pred[CSWins.prob > .5] = "Win"        #THIS IS FOR MAKING A TABLE TO ASSESS ITS ACCURACY
+CSWins.pred[CSWins.prob < .5] = "Loss"
+table(CSWins.pred, taricJg.df$WinLoss)
+
+#this very simple logisitic model correctly predicts game result 68% of the time
+
+winrateAIC.prob = predict(winrate_logistic.aic, type="response")
+winrateAIC.pred = rep("0", dim(taricJg.df)[1])
+winrateAIC.pred[winrateAIC.prob > .5] = "Win"
+winrateAIC.pred[winrateAIC.prob < .5] = "Loss"
+table(winrateAIC.pred, taricJg.df$WinLoss)
+
+#model is 91% accurate over all training data
