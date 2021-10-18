@@ -7,6 +7,9 @@ library(rgl) #loads the rgl package which will allow us to view some 3D scatterp
 library(readxl)
 library(ggplot2)
 library(tidyr)
+library(tree)
+library(ipred)
+library(rpart)
 
 setwd("/Users/User/Desktop/League of Legends Excel Databases")
 getwd()
@@ -53,6 +56,10 @@ summary(predictJg_logistic2)
 plot(predictJg_logistic2)
 vif(predictJg_logistic2) #very low collinearity here with VIF 1.2 for both
 
+predictJg_logistic3 = glm(WinLoss ~ Shurelyias + PTA, data = taricJg.df)
+summary(predictJg_logistic3) #not a statistically significant model
+vif(predictJg_logistic3) #no observed collinearty
+
 vision_logistic.fits = glm(WinLoss ~ Vision, data = taricJg.df, family = binomial)
 plot(vision_logistic.fits)
 summary(vision_logistic.fits) #both the intercept and slope coefficients are statistically significant
@@ -78,6 +85,8 @@ confint(vision_logistic.fits) #this proves that the intercept and slope are almo
 #in the 95% confidence interval. null is rejected
 
 names(taricJg.df)
+
+#NEW LOGISTIC MODEL HERE
 
 par(mfrow=c(2,2))
 winrate_logistic = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Vision + PTA + Shurelyias + Sunderer + Conqueror
@@ -113,7 +122,7 @@ vif(winrate_logistic) #here we had high VIF values (probable collinearities) for
 
 names(taricJg.df)
 winrate_logistic3 = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Vision + PTA + Shurelyias + Sunderer + Conqueror
-                        + Glacial + NoMythic + Ghost + Flash + Melee + Ranged, data = taricJg.df, family = binomial)
+                        + Glacial + NoMythic + Ghost + Flash + Melee + Ranged + Kayn, data = taricJg.df, family = binomial)
 plot(winrate_logistic3)
 summary(winrate_logistic3)
 
@@ -227,7 +236,9 @@ summary(KaynWins_logistic)
 
 par(mfrow=c(1,1))
 plot(taricJg.df$CSPerMinute)
+
 CSWins_logistic = glm(WinLoss ~ CSPerMinute, data = taricJg.df, family = binomial)
+
 newdata3 <- data.frame(CSPerMinute=seq(min(taricJg.df$CSPerMinute), max(taricJg.df$CSPerMinute),len=500))
 newdata3$WinLoss = predict(CSWins_logistic, newdata3, type="response")
 plot(WinLoss ~ CSPerMinute, data=taricJg.df, col="steelblue")  #THIS IS FOR PLOTTING THE LOGISTIC MODEL
@@ -249,4 +260,197 @@ winrateAIC.pred[winrateAIC.prob > .5] = "Win"
 winrateAIC.pred[winrateAIC.prob < .5] = "Loss"
 table(winrateAIC.pred, taricJg.df$WinLoss)
 
-#model is 91% accurate over all training data
+#model is 91% accurate over all training data vs 89% accurate for our glacial games model
+
+#we want to see how good it is when applied to test data. We have a few methods for this, beginning with validation. Then cross
+#validation for k folds. Goal is the smallest drop in accuracy possible for the training values compared to test values
+
+set.seed (1)
+train = sample (300, 150)
+
+winrate_logistic = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn, data = taricJg.df,
+                       subset = train) #renaming winrate_logistic.aic model to winrate_logistic
+attach(taricJg.df)
+mean((WinLoss - predict(winrate_logistic, taricJg.df))[-train ]^2)
+
+#the MSE for the TEST data is 0.09636. MSE should not be as large given that this is a logistic model 
+#with outputs between 1 and 0. Nevertheless, 0.09636 is quite good
+
+train2 = sample(300, 100) #new training set of 100 observations
+winrate_logistic = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn, data = taricJg.df,
+                       subset = train2)
+mean((WinLoss - predict(winrate_logistic, taricJg.df))[-train2 ]^2)
+
+#here the MSE for the test data is 0.10151. This is an INCREASE in average error for 200 test observations as opposed to 150.
+#this is likely due to having fewer training observations (100 vs 150) leading to increased variation
+
+train3 = sample(300, 50) #new training set of 50 observations. like before, we expect a higher MSE here
+winrate_logistic = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn, data = taricJg.df,
+                       subset = train3)
+mean((WinLoss - predict(winrate_logistic, taricJg.df))[-train3 ]^2)
+
+#the average test error is 0.1209 indicating a worsened fit, as expected
+
+library(boot)
+
+install.packages("caret")
+library(caret)
+
+help(cv.glm)
+
+taricJg.df = na.omit(taricJg.df)
+
+cost = function(r, pi = 0) mean(abs(r-pi) > 0.5)
+cv.err = cv.glm(taricJg.df, winrate_logistic, cost, K = 10)
+names(cv.err)
+cv.err$delta
+
+#what we are going to do here is make a regression TREE between WinLoss and every predictor variable in TaricData excluding Ranged
+
+attach(taricJg.df)
+WinPred = factor(ifelse (WinLoss < 0.5, "Loss", "Win") )
+tree.taric = tree(WinPred ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn -Ranged, taricJg.df)
+tree.taric = tree(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn -Ranged, taricJg.df)
+
+summary(tree.taric)
+plot(tree.taric)
+names(tree.taric)
+
+text(tree.taric, pretty = 0) #this labels the tree
+
+#our training error rate is about 9.7%. That means the tree is making the right calls about 90.3% of the time. That's pretty good
+#we can now use VALIDATION to determine the important metric, the TEST ERROR rate
+
+set.seed (2)
+train = sample (1: nrow (taricJg.df), 150) #this partitions taricJg.df's data into a TRAINING set of 150 observations
+taric.test = taricJg.df[-train , ] #and a TEST set of equal amount. This even split should avoid some issues with variability
+WinPred.test = WinPred[-train] #This code sets WinPred.test to the prediction of win or loss based on the TEST data
+tree.taric = tree (WinPred ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn -Ranged, taricJg.df,
+                         subset = train) 
+taric.pred = predict(tree.taric, taric.test, type = "class") #this compares the trees prediction to the test predictions
+table(taric.pred, WinPred.test) #the tree did fairly good. Test error rate is 16.67% for VALIDATION method
+
+set.seed (7)
+cv.taric = cv.tree (tree.taric, FUN = prune.misclass) #here we are using CROSS VALIDATION to prune our tree. The purpose of this 
+#is to find the ideal number of external nodes to obtain the greatest test error accuracy
+names (cv.taric)
+
+cv.taric$size #nodes range from 1 thru 6 and 10
+cv.taric$k #this is the pruning parameter. It adds an error penalty the more nodes there are
+cv.taric$dev #this is the number of cross validation errors
+#it seems the trees with 10 and 6 nodes both result in 22 cv errors. The less errors we have, the better the model!
+
+par (mfrow = c(2, 3))
+plot (cv.taric$size , cv.taric$dev, type = "b")
+plot (cv.taric$k, cv.taric$dev, type = "b")
+
+prune.taric = prune.misclass (tree.taric, best = 6)
+plot(prune.taric)
+text(prune.taric, pretty = 0) #this plots our pruned tree with only 6 nodes
+
+tree.pred = predict(prune.taric, taric.test, type = "class") #compares the predicted values of the pruned tree to the actual
+#test values of wins and losses stored in taric.test
+table(tree.pred, WinPred.test) #cross validation did not result in any improvement to our model. Test error rate is still 16.67%
+#error rate for losses is 29.9%, error rate for wins is 2.8%. Thus the model is 10x more likely to incorrectly identify a loss
+#than a win
+
+#decreasing the number of nodes to 2 from 6 increases the overall error rate to 30% confirming the information we
+#got from the cv error term - that below 6 nodes leads to increased error and 6 or 10 obtain increased accuracy
+
+names(taricJg.df)
+
+#we can create more trees but including every variable instead of a subset of them as we did above
+
+tree2.taric = tree(WinPred ~ Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror + Glacial + PTA + Sunderer
+                  + Shurelyias + NoMythic + Ghost + Flash + Melee + Kayn - Ranged, taricJg.df)
+tree2.taric = tree(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror + Glacial + PTA + Sunderer
+                   + Shurelyias + NoMythic + Ghost + Flash + Melee + Kayn - Ranged, taricJg.df)
+summary(tree2.taric)
+par(mfrow = c(1,1))
+plot(tree2.taric)
+text(tree2.taric, pretty = 0)
+
+taric2.pred = predict(tree2.taric, taric.test, type = "class")
+table(taric2.pred, WinPred.test) #this tree is a whopping 93%! accurate for the test data obtained thru VALIDATION method
+
+library (randomForest)
+
+set.seed (1)
+names(taricJg.df)
+bag.taric = randomForest (WinPred ~. -Ranged, taricJg.df, subset = train, mtry = 15,
+                           importance = TRUE) #include 15 predictors and exclude ranged
+
+#WinPred is a FACTOR. randomForest function will assume classifiction forest which is what we want since our response, wins or
+#losses, is QUALITATIVE
+bag.taric
+
+#the prediction seems to be 100% accurate for the training data
+
+yhat.bag <- predict(bag.taric, newdata = taricJg.df[-train , ])
+table(yhat.bag, WinPred.test)
+
+#the prediction is also 100% accurate for the test data
+
+set.seed (1)
+taric.rf = randomForest(WinPred ~., taricJg.df, subset = train, mtry = 7, importance = TRUE)
+yhat.rf <- predict (rf.taric, newdata = taricJg.df[-train , ])
+table(yhat.rf, WinPred.test)
+
+plot(taric.rf)
+
+importance (rf.taric)
+varImpPlot (rf.taric)
+
+taric.bag <- bagging(
+  formula = WinLoss ~.,
+  data = taricJg.df,
+  nbagg = 500,  
+  coob = TRUE,
+  control = rpart.control(minsplit = 2, cp = 0)
+)
+taric.bag
+
+#changing the number of trees will change our OOB (out of bag) estimated MSE. For 50 trees its 0.3323,
+#for 100 trees it is 0.3327, for 500 trees its 0.3256, and for 1000 trees its 0.326
+#also for 10 trees it is 0.3652. So generally, increasing the number of trees will decrease the MSE which means our predictions
+#will become more accurate!
+
+oob.err<-double(15)
+test.err<-double(15)
+
+for(mtry in 1:15) 
+{
+  rf=randomForest(WinLoss ~. , taricJg.df , subset = train,mtry=mtry,ntree=400) 
+  oob.err[mtry] = rf$mse[400] #Error of all Trees fitted
+  
+  pred<-predict(rf,taricJg.df[-train,]) #Predictions on Test Set for each Tree
+  test.err[mtry]= with(taricJg.df[-train,], mean((WinLoss - pred)^2)) #Mean Squared Test Error
+  
+  cat(mtry," ")
+  
+}
+test.err
+oob.err
+
+matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Mean Squared Error",
+        xlab="Number of Predictors Considered at each Split")
+legend("topright",legend=c("Out of Bag Error","Test Error"),pch=19, col=c("red","blue"))
+
+which.min(oob.err) #out of bag minimum error is at 7 predictors per split
+
+#that is it regarding bagging and now we consider another extension of this: boosting
+
+install.packages("gbm")
+library(gbm)
+
+set.seed (1)
+taric.boost = gbm(WinLoss ~., data = taricJg.df[train, ],
+                       distribution = "bernoulli", n.trees = 5000,
+                       interaction.depth = 4)
+summary(taric.boost)
+plot(taric.boost , i = "Assists")
+plot(taric.boost, i = "Deaths")
+
+yhat.boost <- predict (taric.boost ,
+                       newdata = taricJg.df[-train , ], n.trees = 5000)
+mean((yhat.boost - WinLoss)^2)
