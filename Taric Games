@@ -20,14 +20,173 @@ quantJg.df = quantJg_data
 
 head(taricJg.df)
 summary(taricJg.df)
-plot(taricJg.df)
 
+plot(taricJg.df)
 plot(quantJg.df)
-attach(quantJg.df) #makes it so much easier to plot things
+
+attach(taricJg.df) #makes it so much easier to plot things
+attach(quantJg.df) #attached for the same reason
 
 TowerKills.lm = lm(TowerAdv ~ KillDff)
-abline(TowerKills.lm) #plots the line of best fit for the linear model
+plot(TowerKills.lm)
+plot(TowerAdv ~ KillDff)
 summary(TowerKills.lm)
+abline(TowerKills.lm) #plots the line of best fit for the linear model
+
+AssistTime.lm = lm(Assists ~ GameTime, data = taricJg.df)
+plot(Assists ~ GameTime, ylab = "Assists", xlab = "Game Time (minutes)", main = "Assists vs Game Time") 
+#Assists is denoted as the response variable (y) and GameTime the predictor (x)
+abline(AssistTime.lm)
+summary(AssistTime.lm)
+
+summary(GameTime)
+summary(ItemsCompleted)
+summary(Kills)
+summary(Deaths)
+summary(Assists)
+summary(CSPerMinute)
+summary(Vision)
+summary(TowerAdv)
+summary(DragonDff)
+summary(KillDff)
+
+par(mfrow = c(3,4)) #partitions our graph space into 3 rows, 4 columns
+
+plot(ItemsCompleted ~ Assists, ylab = "Completed Items", xlab = "Assists", main = "R^2 = 0.4833")
+ItemAssist.lm = lm(ItemsCompleted ~ Assists, data = taricJg.df)
+abline(ItemAssist.lm, col = "red") #plots regression line and highlights it in red for visibility
+
+plot(ItemsCompleted ~ GameTime, xlab = "Game Time (minutes)", ylab = "Completed Items", main = "R^2 = 0.7197")
+ItemTime.lm = lm(ItemsCompleted ~ GameTime, data = taricJg.df)
+abline(ItemTime.lm, col = "red")
+
+par(mfrow = c(2,2))
+plot(ItemTime.lm)
+plot(TowerKill.lm)
+
+plot(ItemsCompleted ~ Vision, xlab = "Vision Score", ylab = "Completed Items", main = "R^2 = 0.4458")
+ItemVision.lm = lm(ItemsCompleted ~ Vision, data = taricJg.df)
+abline(ItemVision.lm, col = "red")
+
+plot(GameTime ~ Assists, xlab = "Assists", ylab = "Game Time (minutes)", main = "R^2 = 0.439")
+TimeAssists.lm = lm(GameTime ~ Assists, data = taricJg.df)
+abline(TimeAssists.lm, col = "red")
+
+plot(GameTime ~ Vision, ylab = "Game Time (minutes)", xlab = "Vision", main = "R^2 = 0.5332")
+TimeVision.lm = lm(GameTime ~ Vision, data = taricJg.df)
+abline(TimeVision.lm, col = "red")
+
+plot(TowerAdv ~ Deaths, xlab = "Deaths", ylab = "Tower Advantage", main = "R^2 = 0.4103")
+TowerDeaths.lm = lm(TowerAdv ~ Deaths)
+abline(TowerDeaths.lm, col = "red")
+
+plot(TowerAdv ~ KillDff, xlab = "Kill Difference", ylab = "Tower Advantage", main = "R^2 = 0.7595")
+TowerKill.lm = lm(TowerAdv ~ KillDff)
+abline(TowerKill.lm, col = "red")
+
+plot(TowerAdv ~ DragonDff, xlab = "Dragon Difference", ylab = "Tower Advantage", main = "R^2 = 0.3867")
+TowerDragon.lm = lm(TowerAdv ~ DragonDff)
+abline(TowerDragon.lm, col = "red")
+
+plot(DragonDff ~ KillDff, ylab = "Dragon Difference", xlab = "Kill Difference", main = "R^2 = 0.392")
+DragonKill.lm = lm(DragonDff ~ KillDff)
+abline(DragonKill.lm, col = "red")
+
+plot(Vision ~ Assists, xlab = "Assists", ylab = "Vision", main = "R^2 = 0.35")
+VisionAssist.lm = lm(Vision ~ Assists)
+abline(VisionAssist.lm, col = "red")
+
+plot(CSPerMinute ~ Deaths, xlab = "Deaths", ylab = "CS per Minute", main = "R^2 = 0.4744")
+CSDeaths.lm = lm(CSPerMinute ~ Deaths)
+abline(CSDeaths.lm, col = "red")
+
+plot(KillDff ~ Deaths, xlab = "Deaths", ylab = "Kill Difference", main = "R^2 = 0.4198")
+KillDeaths.lm = lm(KillDff ~ Deaths)
+abline(KillDeaths.lm, col = "red")
+
+par(mfrow = c(2,2))
+plot(ItemAssist.lm)
+
+par(mfrow = c(1,1))
+
+names(KillDeaths.lm)
+
+max(GameTime)
+mean(Assists)
+
+#we compute correlations between all of the quantitative variables in the TaricGames data. we begin with correlation
+#between ItemsCompleted and the 9 other variables and go from there
+
+cor(ItemsCompleted, GameTime)
+cor(ItemsCompleted, Kills)
+cor(ItemsCompleted, Deaths)
+cor(ItemsCompleted, Assists)
+cor(ItemsCompleted, CSPerMinute)
+cor(ItemsCompleted, Vision)
+cor(ItemsCompleted, TowerAdv)
+cor(ItemsCompleted, DragonDff)
+cor(ItemsCompleted, KillDff)
+
+#now we do correlation for every variable starting with Deaths and the other 8
+
+cor(Deaths, GameTime) #moderate-low correlation. 0.3586225
+cor(Deaths, CSPerMinute) #moderate-high negative correlation
+cor(Deaths, KillDff) #moderate negative correlation
+cor(Deaths, TowerAdv) #moderate negative correlation
+cor(Deaths, DragonDff) #moderate correlation
+cor(Deaths, Kills) #no correlation
+cor(Deaths, Assists) #no correlation
+cor(Deaths, Vision) #no correlation
+
+#next we do correlation between Assists and all variables except Deaths
+
+cor(Assists, GameTime) #correlation is pretty good here. 0.66 correlation
+cor(Assists, Vision) #moderate correlation
+cor(Assists, KillDff) #moderate correlation
+cor(Assists, Kills) #moderate-low correlation. 0.3012131
+cor(Assists, CSPerMinute) #no correlation
+cor(Assists, TowerAdv) #moderate correlation. 0.4424341
+cor(Assists, DragonDff) #moderate-low correlation. 0.317648
+
+#same thing between KillDff and all variables except Deaths and Assists
+
+cor(KillDff, TowerAdv) #correlation is 0.871 meaning they are highly correlated with each other 
+#(and also have large, positive covariance)
+cor(KillDff, DragonDff) #moderate correlation
+cor(KillDff, CSPerMinute) #moderate correlation
+cor(KillDff, Kills) #moderate-low correlation. 0.3325168
+cor(KillDff, Vision) #no correlation. 0.2461471
+cor(KillDff, GameTime) #no correlation.
+
+#same thing between CSPerMinute and all variables except Deaths, Assists, and KillDff
+
+cor(CSPerMinute, DragonDff) #moderate correlation
+cor(CSPerMinute, Kills) #no correlation
+cor(CSPerMinute, TowerAdv) #moderate correlation. 0.4633678
+cor(CSPerMinute, Vision) #no correlation
+cor(CSPerMinute, GameTime) #no correlation
+
+#same thing between Vision and all variables except Deaths, Assists, KillDff, and CSPerMinute
+
+cor(Vision, Kills) #no correlation
+cor(Vision, TowerAdv) #no correlation
+cor(Vision, DragonDff) #no correlation
+cor(Vision, GameTime) #strong correlation. 0.7301932
+
+#same thing between DragonDff and all variables except Deaths, Assists, KillDff, CSPerMinute, and Vision
+
+cor(DragonDff, Kills) #no correlation
+cor(DragonDff, GameTime) #strong correlation. 0.7070088
+cor(DragonDff, TowerAdv) #moderate correlation
+
+#same thing between Kills and all variables except Deaths, Assists, KillDff, CSPerMinute, Vision, and DragonDff
+
+cor(Kills, TowerAdv) #no correlation
+cor(Kills, GameTime) #no correlation
+
+#finally we do correlation between TowerAdv and GameTime
+
+cor(TowerAdv, GameTime) #no correlation
 
 names(taricJg.df)
 par(mfrow=c(2,2))
@@ -35,8 +194,6 @@ plot(taricJg.df$Kills ~ taricJg.df$Assists)
 plot(taricJg.df$Kills ~ taricJg.df$Deaths)
 plot(taricJg.df$Kills ~ taricJg.df$CSPerMinute)
 plot(taricJg.df$WinLoss ~ taricJg.df$Vision) #first term gets plotted on the y axis, second term gets plotted on the x
-
-attach(taricJg.df)
 
 #we're going to make a few plots relating game time to several variables
 
@@ -193,11 +350,6 @@ summary(ConqWins_logistic) #no relationship between running conqueror and winnin
 #p value dropped to 0.302 for n = 225 still not significant
 #p = 0.394 for n = 300
 
-ConqWins_logistic = glm(WinLoss ~ Conqueror*Sunderer, data = taricJg.df, family = binomial)
-summary(ConqWins_logistic)
-
-#seems to reject evidence in favor of an interaction between conqueror and sunderer
-
 ShurelyiasWins_logistic = glm(WinLoss ~ Shurelyias, data = taricJg.df, family = binomial)
 summary(ShurelyiasWins_logistic) #no relationship between running Shurelyias and winning (slightly better than Conqueror)
 #p value = 0.900
@@ -254,13 +406,8 @@ KaynWins_logistic = glm(WinLoss ~ Kayn, data = taricJg.df, family = binomial)
 summary(KaynWins_logistic)
 #pval = 0.395
 
-par(mfrow=c(1,1))
-plot(taricJg.df$CSPerMinute)
-
 CSWins_logistic = glm(WinLoss ~ CSPerMinute, data = taricJg.df, family = binomial)
 summary(CSWins_logistic) #very strong statistical significance between CS per min and winning/losing. pval far below 0.05
-
-names(taricJg.df) #returns list of variables so we can make logistic models for the remaining variables
 
 TimeWins_logistic = glm(WinLoss ~ GameTime, data = taricJg.df, family = binomial)
 summary(TimeWins_logistic) #is there a relationship between game time and winning or losing?
@@ -280,11 +427,11 @@ summary(KillWins_logistic) #slightly less powerful relationship between kill dif
 DragonWins_logistic = glm(WinLoss ~ DragonDff, data = taricJg.df, family = binomial)
 summary(DragonWins_logistic) #very strong relationship between dragon advantage and winning/losing p value comparable to Baron
 
-par(mfrow=c(3,3))
+par(mfrow=c(3, 4))
 
 newdata3 <- data.frame(CSPerMinute=seq(min(taricJg.df$CSPerMinute), max(taricJg.df$CSPerMinute),len=500))
 newdata3$WinLoss = predict(CSWins_logistic, newdata3, type="response")
-plot(WinLoss ~ CSPerMinute, data=taricJg.df, col="steelblue", main = "CS model. 68% accurate")  
+plot(WinLoss ~ CSPerMinute, data=taricJg.df, col="steelblue", main = "CS model. 68% acc.")  
 #THIS IS FOR PLOTTING THE LOGISTIC MODEL
 lines(WinLoss ~ CSPerMinute, newdata3, lwd=2)
 
@@ -294,11 +441,14 @@ CSWins.pred[CSWins.prob > .5] = "Win"        #THIS IS FOR MAKING A TABLE TO ASSE
 CSWins.pred[CSWins.prob < .5] = "Loss"
 table(CSWins.pred, taricJg.df$WinLoss)
 
+min(CSWins.prob)
+max(CSWins.prob)
+
 #this very simple logisitic model correctly predicts game result 68% of the time
 
 newdata4 <- data.frame(Baron=seq(min(taricJg.df$Baron), max(taricJg.df$Baron),len=500))
 newdata4$WinLoss = predict(BaronWins_logistic, newdata4, type="response")
-plot(WinLoss ~ Baron, data=taricJg.df, col="red", main = "Baron model. 75% accurate")  #THIS IS FOR PLOTTING THE LOGISTIC MODEL
+plot(WinLoss ~ Baron, data=taricJg.df, col="red", main = "Baron model. 75% acc.")  #THIS IS FOR PLOTTING THE LOGISTIC MODEL
 lines(WinLoss ~ Baron, newdata4, lwd=2)
 
 BaronWins.prob = predict(BaronWins_logistic, type="response")
@@ -307,11 +457,14 @@ BaronWins.pred[BaronWins.prob > .5] = "Win"        #THIS IS FOR MAKING A TABLE T
 BaronWins.pred[BaronWins.prob < .5] = "Loss"       #we use the Bayes Classifier to make the division here (> 0.5) = win
 table(BaronWins.pred, taricJg.df$WinLoss)
 
+min(BaronWins.prob)
+max(BaronWins.prob)
+
 #Baron secures correctly predict wins 75% of the time
 
 newdata5 <- data.frame(DragonDff=seq(min(taricJg.df$DragonDff), max(taricJg.df$DragonDff),len=500))
 newdata5$WinLoss = predict(DragonWins_logistic, newdata5, type="response")
-plot(WinLoss ~ DragonDff, data=taricJg.df, col="orange", main = "Dragon model. 74% accurate")  
+plot(WinLoss ~ DragonDff, data=taricJg.df, col="orange", main = "Dragon model. 74% acc.")  
 #THIS IS FOR PLOTTING THE LOGISTIC MODEL
 lines(WinLoss ~ DragonDff, newdata5, lwd=2)
 
@@ -321,11 +474,14 @@ DragonWins.pred[DragonWins.prob > .5] = "Win"        #THIS IS FOR MAKING A TABLE
 DragonWins.pred[DragonWins.prob < .5] = "Loss"       #we use the Bayes Classifier to make the division here (> 0.5) = win
 table(DragonWins.pred, taricJg.df$WinLoss)
 
+min(DragonWins.prob)
+max(DragonWins.prob)
+
 #Dragon difference correctly predicts wins 74% of the time (very slightly worse than Baron secures)
 
 newdata6 = data.frame(KillDff = seq(min(taricJg.df$KillDff), max(taricJg.df$KillDff), len = 500))
 newdata6$WinLoss = predict(KillWins_logistic, newdata6, type = "response")
-plot(WinLoss ~ KillDff, data = taricJg.df, col = "brown", main = "Kill model. 96% accurate")
+plot(WinLoss ~ KillDff, data = taricJg.df, col = "brown", main = "Kill model. 96% acc.")
 lines(WinLoss ~ KillDff, newdata6, lwd = 2)
 
 KillWins.prob = predict(KillWins_logistic, type="response")
@@ -334,15 +490,24 @@ KillWins.pred[KillWins.prob > .5] = "Win"        #THIS IS FOR MAKING A TABLE TO 
 KillWins.pred[KillWins.prob < .5] = "Loss"       #we use the Bayes Classifier to make the division here (> 0.5) = win
 table(KillWins.pred, taricJg.df$WinLoss)
 
+min(KillWins.prob)
+max(KillWins.prob)
+
 #Kill difference correctly predicts wins 96% of the time. Excluding one observation which was due to a game bug causing no one to
 #win, this is 96.33% accurate. Will need to determine if Kills has covariance with other factors
 
 newdata7 = data.frame(GameTime = seq(min(taricJg.df$GameTime), max(taricJg.df$GameTime), len = 500))
 newdata7$WinLoss = predict(TimeWins_logistic, newdata7, type = "response")
-plot(WinLoss ~ GameTime, data = taricJg.df, col = "green", main = "Time model. 55% accurate")
+plot(WinLoss ~ GameTime, data = taricJg.df, col = "green", main = "Time model. 55% acc.")
 lines(WinLoss ~ GameTime, newdata7, lwd = 2)
 
 TimeWins.prob = predict(TimeWins_logistic, type="response")
+min(TimeWins.prob)
+max(TimeWins.prob)
+mean(TimeWins.prob)
+TimeWins.lm = (TimeWins.prob~GameTime)
+plot(TimeWins.prob ~ GameTime)
+summary(TimeWins.lm)
 TimeWins.pred = rep("0", dim(taricJg.df)[1])
 TimeWins.pred[TimeWins.prob > .5] = "Win"        
 TimeWins.pred[TimeWins.prob < .5] = "Loss"       
@@ -354,15 +519,19 @@ table(TimeWins.pred, taricJg.df$WinLoss)
 PTAWins_logistic = glm(WinLoss ~ PTA, family = binomial)
 
 newdata8 = data.frame(PTA = seq(min(taricJg.df$PTA), max(taricJg.df$PTA), len = 500))
-newdata8$WinLoss = predict(PTAwins_logistic, newdata8, type = "response")
-plot(WinLoss ~ PTA, data = taricJg.df, col = "gold", main = "PTA model. ")
+newdata8$WinLoss = predict(PTAWins_logistic, newdata8, type = "response")
+plot(WinLoss ~ PTA, data = taricJg.df, col = "gold", main = "PTA model. 54% acc.")
 lines(WinLoss ~ PTA, newdata8, lwd = 2)
 
-PTAWins.prob = predict(PTAWins_logistic, type = "response")
+max(PTAWins.prob) #the maximum probability of winning is 56.85%
+min(PTAWins.prob) #the minimum probability of winning is 50.39%
+
+PTAWins.prob = predict(PTAWins_logistic, type="response")
 PTAWins.pred = rep("0", dim(taricJg.df)[1])
-PTAWins.pred[PTAWins.prob > 0.5] = "Win"        
-PTAWins.pred[PTAWins.prob < 0.5] = "Loss"      
-table(PTAWins.pred, taricJg.df$WinLoss) #not sure why this table is broken
+PTAWins.pred[PTAWins.prob > .5] = "Win"        #THIS IS FOR MAKING A TABLE TO ASSESS ITS ACCURACY
+PTAWins.pred[PTAWins.prob < .5] = "Loss"       #we use the Bayes Classifier to make the division here (> 0.5) = win
+table(PTAWins.pred, taricJg.df$WinLoss)
+
 
 #also a poor model as PTA does not have a strong association with winning.
 
@@ -370,7 +539,7 @@ names(taricJg.df)
 
 newdata9 = data.frame(TowerAdv = seq(min(taricJg.df$TowerAdv), max(taricJg.df$TowerAdv), len = 500))
 newdata9$WinLoss = predict(TowerWins_logistic, newdata9, type = "response")
-plot(WinLoss ~ TowerAdv, data = taricJg.df, col = "gray", main = "Tower model. 97% accurate")
+plot(WinLoss ~ TowerAdv, data = taricJg.df, col = "gray", main = "Tower model. 97% acc.")
 lines(WinLoss ~ TowerAdv, newdata9, lwd = 2)
 
 TowerWins.prob = predict(TowerWins_logistic, type = "response")
@@ -378,6 +547,9 @@ TowerWins.pred = rep("0", dim(taricJg.df)[1])
 TowerWins.pred[TowerWins.prob > 0.5] = "Win"
 TowerWins.pred[TowerWins.prob < 0.5] = "Loss"
 table(TowerWins.pred, taricJg.df$WinLoss)
+
+min(TowerWins.prob)
+max(TowerWins.prob)
 
 #excellent model. Tower difference is accurate approximately 97% of the time. There is a potential outlier in the plot with a
 #data point indicating a loss despite a tower advantage of 11. Will require investigation
@@ -387,7 +559,7 @@ summary(ItemWins_logistic) #ItemsCompleted is a statistically significant predic
 
 newdata10 = data.frame(ItemsCompleted = seq(min(taricJg.df$ItemsCompleted), max(taricJg.df$ItemsCompleted), len = 500))
 newdata10$WinLoss = predict(ItemWins_logistic, newdata10, type = "response")
-plot(WinLoss ~ ItemsCompleted, data = taricJg.df, col = "purple", main = "Item model. 63% accurate")
+plot(WinLoss ~ ItemsCompleted, data = taricJg.df, col = "purple", main = "Item model. 63% acc.")
 lines(WinLoss ~ ItemsCompleted, newdata10, lwd = 2)
 
 ItemWins.prob = predict(ItemWins_logistic, type = "response")
@@ -395,6 +567,9 @@ ItemWins.pred = rep("0", dim(taricJg.df)[1])
 ItemWins.pred[ItemWins.prob > 0.5] = "Win"
 ItemWins.pred[ItemWins.prob < 0.5] = "Loss"
 table(ItemWins.pred, taricJg.df$WinLoss)
+
+min(ItemWins.prob)
+max(ItemWins.prob)
 
 #mediocre model. correctly predicted win/loss 63% of the time. Did an excellent job predicting wins but was only 31.9% accurate
 #when predicting losses
@@ -405,7 +580,7 @@ VisionWins_logistic = glm(WinLoss ~ Vision, family = binomial)
 
 newdata11 = data.frame(Vision = seq(min(taricJg.df$Vision), max(taricJg.df$Vision), len = 500))
 newdata11$WinLoss = predict(VisionWins_logistic, newdata11, type = "response")
-plot(WinLoss ~ Vision, data = taricJg.df, col = "light blue", main = "Vision model. 61% accurate")
+plot(WinLoss ~ Vision, data = taricJg.df, col = "light blue", main = "Vision model. 61% acc.")
 lines(WinLoss ~ Vision, newdata11, lwd = 2)
 
 VisionWins.prob = predict(VisionWins_logistic, type = "response")
@@ -414,24 +589,215 @@ VisionWins.pred[VisionWins.prob > 0.5] = "Win"
 VisionWins.pred[VisionWins.prob < 0.5] = "Loss"
 table(VisionWins.pred, taricJg.df$WinLoss)
 
+min(VisionWins.prob)
+max(VisionWins.prob)
+
 #also a mediocre model. 61% accurate so it is slightly worse than the Item model. Unlike the item model it isn't skewed in
 #predicting wins or losses but is not very good at either.
 
-winrateAIC.prob = predict(winrate_logistic.aic, type="response")
-winrateAIC.pred = rep("0", dim(taricJg.df)[1])
-winrateAIC.pred[winrateAIC.prob > .5] = "Win"
-winrateAIC.pred[winrateAIC.prob < .5] = "Loss"
-table(winrateAIC.pred, taricJg.df$WinLoss)
+MythicWins_logistic = glm(WinLoss ~ NoMythic, family = binomial)
 
-#model is 91% accurate over all training data vs 89% accurate for our glacial games model
+newdata12 = data.frame(NoMythic = seq(min(taricJg.df$NoMythic), max(taricJg.df$NoMythic), len = 500))
+newdata12$WinLoss = predict(MythicWins_logistic, newdata12, type = "response")
+plot(WinLoss ~ NoMythic, data = taricJg.df, col = "dark red", main = "No Mythic model. 57% acc.")
+lines(WinLoss ~ NoMythic, newdata12, lwd = 2)
 
-#we want to see how good it is when applied to test data. We have a few methods for this, beginning with validation. Then cross
+max(MythicWins.prob) #56% chance of winning if lightrocket buys his mythic
+min(MythicWins.prob) #35% chance of winning if he does not
+
+MythicWins.prob = predict(MythicWins_logistic, type = "response")
+MythicWins.pred = rep("0", dim(taricJg.df)[1])
+MythicWins.pred[MythicWins.prob > 0.5] = "Win"
+MythicWins.pred[MythicWins.prob < 0.5] = "Loss"
+table(MythicWins.pred, taricJg.df$WinLoss)
+
+DeathWins_logistic = glm(WinLoss ~ Deaths, family = binomial)
+
+newdata13 = data.frame(Deaths = seq(min(taricJg.df$Deaths), max(taricJg.df$Deaths), len = 500))
+newdata13$WinLoss = predict(DeathWins_logistic, newdata13, type = "response")
+plot(WinLoss ~ Deaths, data = taricJg.df, col = "black", main = "Death Model. 74% acc.")
+lines(WinLoss ~ Deaths, newdata13, lwd = 2)
+
+min(DeathWins.prob) #0.9% chance of winning at max no. of deaths (13)
+max(DeathWins.prob) #95.2% chance of winning at min no. of deaths (0)
+
+DeathWins.prob = predict(DeathWins_logistic, type = "response")
+DeathWins.pred = rep("0", dim(taricJg.df)[1])
+DeathWins.pred[DeathWins.prob > 0.5] = "Win"
+DeathWins.pred[DeathWins.prob < 0.5] = "Loss"
+table(DeathWins.pred, taricJg.df$WinLoss)
+
+KillsWins_logistic = glm(WinLoss ~ Kills, family = binomial)
+
+newdata14 = data.frame(Kills = seq(min(taricJg.df$Kills), max(taricJg.df$Kills), len = 500))
+newdata14$WinLoss = predict(KillsWins_logistic, newdata14, type = "response")
+plot(WinLoss ~ Kills, data = taricJg.df, col = "purple", main = "Kills Model. 64% acc.")
+lines(WinLoss ~ Kills, newdata14, lwd = 2)
+
+KillsWins.prob = predict(KillsWins_logistic, type = "response")
+KillsWins.pred = rep("0", dim(taricJg.df)[1])
+KillsWins.pred[KillsWins.prob > 0.5] = "Win"
+KillsWins.pred[KillsWins.prob < 0.5] = "Loss"
+table(KillsWins.pred, taricJg.df$WinLoss)
+
+max(KillsWins.prob)
+min(KillsWins.prob)
+
+par(mfrow = c(3,4))
+
+#we have plotted logistic models between the first twelve predictor variables and chances of winning (the response). Now we
+#shall do the same thing for the last 10 variables, many of them being qualitative choices
+
+AssistsWins_logistic = glm(WinLoss ~ Assists, family = binomial)
+
+newdata15 = data.frame(Assists = seq(min(taricJg.df$Assists), max(taricJg.df$Assists), len = 500))
+newdata15$WinLoss = predict(AssistsWins_logistic, newdata15, type = "response")
+plot(WinLoss ~ Assists, data = taricJg.df, col = "gold", main = "Assists Model. 71% acc.")
+lines(WinLoss ~ Assists, newdata15, lwd = 2)
+
+AssistsWins.prob = predict(AssistsWins_logistic, type = "response")
+AssistsWins.pred = rep("0", dim(taricJg.df)[1])
+AssistsWins.pred[AssistsWins.prob > 0.5] = "Win"
+AssistsWins.pred[AssistsWins.prob < 0.5] = "Loss"
+table(AssistsWins.pred, taricJg.df$WinLoss)
+
+min(AssistsWins.prob)
+max(AssistsWins.prob)
+
+newdata16 = data.frame(Shurelyias = seq(min(taricJg.df$Shurelyias), max(taricJg.df$Shurelyias), len = 500))
+newdata16$WinLoss = predict(ShurelyiasWins_logistic, newdata16, type = "response")
+plot(WinLoss ~ Shurelyias, data = taricJg.df, col = "brown", main = "Shurelyias Model. 54% acc.")
+lines(WinLoss ~ Shurelyias, newdata16, lwd = 2)
+
+ShurelyiasWins.prob = predict(ShurelyiasWins_logistic, type = "response")
+ShurelyiasWins.pred = rep("0", dim(taricJg.df)[1])
+ShurelyiasWins.pred[ShurelyiasWins.prob > 0.5] = "Win"
+ShurelyiasWins.pred[ShurelyiasWins.prob < 0.5] = "Loss"
+table(ShurelyiasWins.pred, taricJg.df$WinLoss)
+
+min(ShurelyiasWins.prob) #52% chance of winning if Shurelyias was taken
+max(ShurelyiasWins.prob) #57.8% chance of winning if Shurelyias was not taken
+
+newdata17 = data.frame(Conqueror = seq(min(taricJg.df$Conqueror), max(taricJg.df$Conqueror), len = 500))
+newdata17$WinLoss = predict(ConqWins_logistic, newdata17, type = "response")
+plot(WinLoss ~ Conqueror, data = taricJg.df, col = "gold", main = "Conqueror Model. 55% acc.")
+lines(WinLoss ~ Conqueror, newdata17, lwd = 2)
+
+ConqWins.prob = predict(ConqWins_logistic, type = "response")
+ConqWins.pred = rep("0", dim(taricJg.df)[1])
+ConqWins.pred[ConqWins.prob > 0.5] = "Win"
+ConqWins.pred[ConqWins.prob < 0.5] = "Loss"
+table(ConqWins.pred, taricJg.df$WinLoss)
+
+min(ConqWins.prob) #46.9% chance of winning with conqueror taken
+max(ConqWins.prob) #55% chance of winning if it is not
+
+newdata18 = data.frame(Flash = seq(min(taricJg.df$Flash), max(taricJg.df$Flash), len = 500))
+newdata18$WinLoss = predict(FlashWins_logistic, newdata18, type = "response")
+plot(WinLoss ~ Flash, data = taricJg.df, col = "orange", main = "Flash Model. 54% acc.")
+lines(WinLoss ~ Flash, newdata18, lwd = 2)
+
+FlashWins.prob = predict(FlashWins_logistic, type = "response")
+FlashWins.pred = rep("0", dim(taricJg.df)[1])
+FlashWins.pred[FlashWins.prob > 0.5] = "Win"
+FlashWins.pred[FlashWins.prob < 0.5] = "Loss"
+table(FlashWins.pred, taricJg.df$WinLoss)
+
+min(FlashWins.prob) #50% chance of winning if Flash is taken
+max(FlashWins.prob) #55.7% chance of winning if it is not
+
+newdata19 = data.frame(Ranged = seq(min(taricJg.df$Ranged), max(taricJg.df$Ranged), len = 500))
+newdata19$WinLoss = predict(RangedWins_logistic, newdata19, type = "response")
+plot(WinLoss ~ Ranged, data = taricJg.df, col = "pink", main = "Ranged Model. 55% acc.")
+lines(WinLoss ~ Ranged, newdata19, lwd = 2)
+
+RangedWins.prob = predict(RangedWins_logistic, type = "response")
+RangedWins.pred = rep("0", dim(taricJg.df)[1])
+RangedWins.pred[RangedWins.prob > 0.5] = "Win"
+RangedWins.pred[RangedWins.prob < 0.5] = "Loss"
+table(RangedWins.pred, taricJg.df$WinLoss)
+
+min(RangedWins.prob) #49% chance of winning if the matchup is ranged
+max(RangedWins.prob) #56% chance of winning if the matchup is melee
+
+newdata20 = data.frame(Melee = seq(min(taricJg.df$Melee), max(taricJg.df$Melee), len = 500))
+newdata20$WinLoss = predict(MeleeWins_logistic, newdata20, type = "response")
+plot(WinLoss ~ Melee, data = taricJg.df, col = "brown", main = "Melee Model. 55% acc.")
+lines(WinLoss ~ Melee, newdata20, lwd = 2)
+
+MeleeWins.prob = predict(MeleeWins_logistic, type = "response")
+MeleeWins.pred = rep("0", dim(taricJg.df)[1])
+MeleeWins.pred[MeleeWins.prob > 0.5] = "Win"
+MeleeWins.pred[MeleeWins.prob < 0.5] = "Loss"
+table(MeleeWins.pred, taricJg.df$WinLoss)
+
+min(MeleeWins.prob) #56% chance of winning if matchup is melee
+max(MeleeWins.prob) #49% chance of winning if matchup is ranged
+
+newdata21 = data.frame(Glacial = seq(min(taricJg.df$Glacial), max(taricJg.df$Glacial), len = 500))
+newdata21$WinLoss = predict(GlacialWins_logistic, newdata21, type = "response")
+plot(WinLoss ~ Glacial, data = taricJg.df, col = "light blue", main = "Glacial Model. 55% acc.")
+lines(WinLoss ~ Glacial, newdata21, lwd = 2)
+
+GlacialWins.prob = predict(GlacialWins_logistic, type = "response")
+GlacialWins.pred = rep("0", dim(taricJg.df)[1])
+GlacialWins.pred[MeleeWins.prob > 0.5] = "Win"
+GlacialWins.pred[MeleeWins.prob < 0.5] = "Loss"
+table(GlacialWins.pred, taricJg.df$WinLoss)
+
+min(GlacialWins.prob) #50% chance of winning if glacial is taken
+max(GlacialWins.prob) #56% chance of winning if it is not
+
+newdata22 = data.frame(Kayn = seq(min(taricJg.df$Kayn), max(taricJg.df$Kayn), len = 500))
+newdata22$WinLoss = predict(KaynWins_logistic, newdata22, type = "response")
+plot(WinLoss ~ Kayn, data = taricJg.df, col = "green", main = "Kayn Model. 55% acc.")
+lines(WinLoss ~ Kayn, newdata22, lwd = 2)
+
+KaynWins.prob = predict(KaynWins_logistic, type = "response")
+KaynWins.pred = rep("0", dim(taricJg.df)[1])
+KaynWins.pred[KaynWins.prob > 0.5] = "Win"
+KaynWins.pred[KaynWins.prob < 0.5] = "Loss"
+table(KaynWins.pred, taricJg.df$WinLoss)
+
+min(KaynWins.prob) #42.8% chance of winning if kayn is picked
+max(KaynWins.prob) #54.7% chance of winning if Kayn is not picked
+
+newdata23 = data.frame(Ghost = seq(min(taricJg.df$Ghost), max(taricJg.df$Ghost), len = 500))
+newdata23$WinLoss = predict(GhostWins_logistic, newdata23, type = "response")
+plot(WinLoss ~ Ghost, data = taricJg.df, col = "blue", main = "Ghost Model. 54% acc.")
+lines(WinLoss ~ Ghost, newdata23, lwd = 2)
+
+GhostWins.prob = predict(GhostWins_logistic, type = "response")
+GhostWins.pred = rep("0", dim(taricJg.df)[1])
+GhostWins.pred[GhostWins.prob > 0.5] = "Win"
+GhostWins.pred[GhostWins.prob < 0.5] = "Loss"
+table(GhostWins.pred, taricJg.df$WinLoss)
+
+min(GhostWins.prob) #49% chance of winning if ghost isnt taken
+max(GhostWins.prob) #56% chance of winning if it is
+
+newdata24 = data.frame(Sunderer = seq(min(taricJg.df$Sunderer), max(taricJg.df$Sunderer), len = 500))
+newdata24$WinLoss = predict(SundererWins_logistic, newdata24, type = "response")
+plot(WinLoss ~ Sunderer, data = taricJg.df, col = "light green", main = "Sunderer Model. 54% acc.")
+lines(WinLoss ~ Sunderer, newdata24, lwd = 2)
+
+SundererWins.prob = predict(SundererWins_logistic, type = "response")
+SundererWins.pred = rep("0", dim(taricJg.df)[1])
+SundererWins.pred[SundererWins.prob > 0.5] = "Win"
+SundererWins.pred[SundererWins.prob < 0.5] = "Loss"
+table(SundererWins.pred, taricJg.df$WinLoss)
+
+min(SundererWins.prob) #50.4% chance of winning if Sunderer is not taken
+max(SundererWins.prob) #66% chance of winning if Sunderer is taken
+
+#we want to see how good models are when applied to test data. We have a few methods for this, 
+#beginning with validation. Then cross
 #validation for k folds. Goal is the smallest drop in accuracy possible for the training values compared to test values
 
 set.seed (1)
 train = sample (300, 150)
 
-winrate_logistic = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn, data = taricJg.df,
+winrate_logistic = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias, data = taricJg.df,
                        subset = train) #renaming winrate_logistic.aic model to winrate_logistic
 mean((WinLoss - predict(winrate_logistic, taricJg.df))[-train ]^2)
 
@@ -453,48 +819,118 @@ mean((WinLoss - predict(winrate_logistic, taricJg.df))[-train3 ]^2)
 
 #the average test error is 0.1209 indicating a worsened fit, as expected
 
-#lets make a new model incorporating all 21 predictors, preform the AIC elimination method, and then apply test methods to it.
+#lets make a new model incorporating 18 predictors, preform the AIC elimination method, and then apply test methods to it.
 #we will call this model winrate_logistic4
 
-winrate_logistic4 = glm(WinLoss ~ GameTime + ItemsCompleted + Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror
-                        + Glacial + PTA + Sunderer + Shurelyias + NoMythic + Ghost + Flash + Melee + Kayn + TowerAdv + DragonDff
-                        + Baron + KillDff, family = "binomial")
+winrate_logistic4 = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Baron + DragonDff + 
+                          PTA + Vision + NoMythic + Conqueror + Flash + Ghost + Melee + Glacial + Kayn
+                        + Sunderer, family = "binomial")
 par(mfrow=c(2,2))
 plot(winrate_logistic4)
-summary(winrate_logistic4) #nothing is statistically significant. This is a huge problem
+summary(winrate_logistic4) #about half of the predictors are statistically significant
 
 winrate_logistic4.aic = step(winrate_logistic4)
-summary(winrate_logistic4.aic) #the AIC does not fix this issue. There are several possible problems. Lets begin with a simpler
-#model only factoring in statistically significant predictors
+summary(winrate_logistic4.aic) #the AIC fixed this issue all variables are statistically significant and Ghost is borderline
+#significant. There are a few things that do not make sense such as higher vision score leading to a lower chance of
+#winning when we know this is not true
+
+#let us preform a simpler model
 
 names(taricJg.df)
 
-winrate_logistic5 = glm(WinLoss ~ ItemsCompleted + Vision + Sunderer + Kills + Deaths + Assists + CSPerMinute + NoMythic +
-                          TowerAdv + DragonDff + Baron + KillDff, family = "binomial")
+winrate_logistic5 = glm(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Sunderer + Baron + DragonDff +
+                          Vision + Ghost + Kayn + Conqueror, family = "binomial")
 plot(winrate_logistic5) #this looks considerably better
 summary(winrate_logistic5) #many of our variables are not statistically significant with TowerAdv, Baron, and KillDff all being
 #statistically significant. we can address this with the AIC
 
 winrate_logistic5.aic = step(winrate_logistic5)
-#AIC eliminates all variables except TowerAdv, Baron, and KillDff
+#AIC reduces this to the same variables as we had in winrate_logistic4.aic
 
 plot(winrate_logistic5.aic)
-summary(winrate_logistic5.aic) #all predictors achieve strong statistical significance
+summary(winrate_logistic5.aic) #exact same model as winrate_logistic4.aic
+vif(winrate_logistic5.aic) #very low collinearity between these variables
 
-winrate_logistic6 = glm(WinLoss ~ GameTime + ItemsCompleted + Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror
-                        + Glacial + PTA + Sunderer + Shurelyias + NoMythic + Ghost + Flash + Melee + Kayn + TowerAdv + DragonDff
-                        , family = binomial)
+par(mfrow = c(2,2))
+
+winrate_logistic6 = glm(WinLoss ~ Baron + DragonDff + Kills + Deaths + Assists + Kayn, family = binomial)
 plot(winrate_logistic6)
 summary(winrate_logistic6)
 winrate_logistic6.aic = step(winrate_logistic6)
-summary(winrate_logistic6.aic)
+summary(winrate_logistic6.aic) #the problem is that Vision is still negatively associated with winning when we know that is not
+#true
+
+#eliminating vision seems to be only way to fix this problem. makes sense as it had virtually no significance upon including
+#Baron, a more powerful predictor
+
+#Kayn maintains slight statistical significance p = 0.09. Kills is significant. Coefficient estimates are OK but could be
+#better
+
+vif(winrate_logistic6.aic) #low collinearity between the predictors
+
+winrateAIC.prob = predict(winrate_logistic6.aic, type="response")
+winrateAIC.pred = rep("0", dim(taricJg.df)[1])
+winrateAIC.pred[winrateAIC.prob > .5] = "Win"
+winrateAIC.pred[winrateAIC.prob < .5] = "Loss"
+table(winrateAIC.pred, taricJg.df$WinLoss)
+
+#this model is 93.69% for all 301 observations used to train it (no test set). Only 93.02% accurate excluding Kayn
+
+set.seed (1)
+taric.train = sample (1: nrow (taricJg.df), 150) #this partitions taricJg.df's data into a TRAINING set of 150 observations
+taric.test = taricJg.df[-train , ]
+
+winrate_logistic6.aic = glm (WinLoss ~ Baron + DragonDff + Kills + Deaths + Assists + Kayn, data = taricJg.df, 
+                             family = binomial, subset = taric.train)
+
+testWinrate.prob = predict (winrate_logistic6.aic, taric.test, type = "response")
+testWinrate.pred = rep ("0", dim(taric.test)[1])
+testWinrate.pred[testWinrate.prob > .5] = "Win"
+testWinrate.pred[testWinrate.prob < .5] = "Loss"
+table (testWinrate.pred, taric.test$WinLoss)
+
+#our logistic model is 92.72% accurate for 151 test observations
+
+winrate_logistic7 = glm(WinLoss ~ Baron + DragonDff + Kills + Deaths + Assists + Kayn + Glacial + Shurelyias + PTA + Sunderer
+                        + Conqueror + Ranged + Flash + Ghost + Vision + NoMythic + CSPerMinute, family = binomial)
+plot(winrate_logistic7)
+summary(winrate_logistic7)
+
+vif(winrate_logistic7) #some instances of high collinearity (conqueror and PTA in particular)
+
+winrate7.prob = predict(winrate_logistic7, type="response")
+winrate7.pred = rep("0", dim(taricJg.df)[1])
+winrate7.pred[winrate6.prob > .5] = "Win"
+winrate7.pred[winrate6.prob < .5] = "Loss"
+table(winrate7.pred, taricJg.df$WinLoss)
+
+#this model is 95.02% accurate for all 301 observations
+
+set.seed (1)
+taric.train2 = sample (1: nrow (taricJg.df), 150) #this partitions taricJg.df's data into a TRAINING set of 150 observations
+taric.test2 = taricJg.df[-train , ]
+
+test2Winrate.prob = predict (winrate_logistic7, taric.test2, type = "response")
+test2Winrate.pred = rep ("0", dim(taric.test2)[1])
+test2Winrate.pred[test2Winrate.prob > .5] = "Win"
+test2Winrate.pred[test2Winrate.prob < .5] = "Loss"
+table (test2Winrate.pred, taric.test2$WinLoss)
+
+#our logistic model is 96.03% accurate for 151 test observations
+
+sample_logistic = glm(WinLoss ~ GameTime + ItemsCompleted + Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror + 
+                        Glacial + PTA + Sunderer + Shurelyias + NoMythic + Ghost + Flash + Melee + Kayn + TowerAdv + DragonDff,
+                       subset = train) #rename winrate_logistic6 to sample_logistic
+mean((WinLoss - predict(sample_logistic, taricJg.df))[-train ]^2)
+
+#MSE for the test data is 0.0793
 
 library(boot)
 
 #what we are going to do here is make a regression TREE between WinLoss and every predictor variable in TaricData excluding Ranged
 
 WinPred = factor(ifelse (WinLoss < 0.5, "Loss", "Win") )
-tree.taric = tree(WinPred ~ Deaths + Assists + Conqueror + Glacial + NoMythic + Flash + TowerAdv + DragonDff, taricJg.df)
+tree.taric = tree(WinPred ~ Baron + DragonDff + Kills + Deaths + Assists + Kayn, taricJg.df)
 tree.taric = tree(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn -Ranged, taricJg.df)
 
 summary(tree.taric)
@@ -504,139 +940,118 @@ names(tree.taric)
 
 text(tree.taric, pretty = 0) #this labels the tree
 
-#our training error rate is about 9.7%. That means the tree is making the right calls about 90.3% of the time. That's pretty good
+#our training error rate is about 2.99%. That means the tree is making the right calls about 97% of the time. That's pretty good
 #we can now use VALIDATION to determine the important metric, the TEST ERROR rate
 
 set.seed (2)
 train = sample (1: nrow (taricJg.df), 150) #this partitions taricJg.df's data into a TRAINING set of 150 observations
 taric.test = taricJg.df[-train , ] #and a TEST set of equal amount. This even split should avoid some issues with variability
 WinPred.test = WinPred[-train] #This code sets WinPred.test to the prediction of win or loss based on the TEST data
-tree.taric = tree (WinPred ~ Kills + Deaths + Assists + CSPerMinute + Shurelyias + Melee + Kayn -Ranged, taricJg.df,
+tree.taric = tree (WinPred ~ Baron + DragonDff + Kills + Deaths + Assists + Kayn,
                          subset = train) 
 taric.pred = predict(tree.taric, taric.test, type = "class") #this compares the trees prediction to the test predictions
-table(taric.pred, WinPred.test) #the tree did fairly good. Test error rate is 16.67% for VALIDATION method
+table(taric.pred, WinPred.test) #the tree did fairly good. Test error rate is 13.25% for VALIDATION method. 151 test observations
+
+#we expect error to go up for test observations relative to training observations so this is good
 
 set.seed (7)
 cv.taric = cv.tree (tree.taric, FUN = prune.misclass) #here we are using CROSS VALIDATION to prune our tree. The purpose of this 
 #is to find the ideal number of external nodes to obtain the greatest test error accuracy
 names (cv.taric)
 
-cv.taric$size #nodes range from 1 thru 6 and 10
-cv.taric$k #this is the pruning parameter. It adds an error penalty the more nodes there are
+cv.taric$size #nodes are 4, 2, and 1
+cv.taric$k #this is the pruning parameter. It adds an error penalty the more nodes there are. For 4 nodes the parameter is 
+#negative infinity, for 2 it is 0, for 1 it is 56
 cv.taric$dev #this is the number of cross validation errors
-#it seems the trees with 10 and 6 nodes both result in 22 cv errors. The less errors we have, the better the model!
+#it seems the trees with 4 and 2 nodes each have 4 CV errors. the tree with 1 node
+#has 60 errors. The less errors we have, the better the model. As a result, the 1 node tree is probably the worst model
 
 par (mfrow = c(2, 3))
 plot (cv.taric$size , cv.taric$dev, type = "b")
 plot (cv.taric$k, cv.taric$dev, type = "b")
 
-prune.taric = prune.misclass (tree.taric, best = 6)
+prune.taric = prune.misclass (tree.taric, best = 7)
 plot(prune.taric)
 text(prune.taric, pretty = 0) #this plots our pruned tree with only 6 nodes
 
 tree.pred = predict(prune.taric, taric.test, type = "class") #compares the predicted values of the pruned tree to the actual
 #test values of wins and losses stored in taric.test
-table(tree.pred, WinPred.test) #cross validation did not result in any improvement to our model. Test error rate is still 16.67%
-#error rate for losses is 29.9%, error rate for wins is 2.8%. Thus the model is 10x more likely to incorrectly identify a loss
-#than a win
+table(tree.pred, WinPred.test) #choosing a 7 node model made it slightly better. Now 88% accurate
 
-#decreasing the number of nodes to 2 from 6 increases the overall error rate to 30% confirming the information we
-#got from the cv error term - that below 6 nodes leads to increased error and 6 or 10 obtain increased accuracy
+prune.taric2 = prune.misclass(tree.taric, best = 3)
+plot(prune.taric2)
+text(prune.taric, pretty = 0)
+
+tree.pred2 = predict(prune.taric2, taric.test, type = "class")
+table(tree.pred2, WinPred.test) #poor model. 82.12% accurate
 
 names(taricJg.df)
 
 #we can create more trees but including every variable instead of a subset of them as we did above
 
-tree2.taric = tree(WinPred ~ Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror + Glacial + PTA + Sunderer
-                  + Shurelyias + NoMythic + Ghost + Flash + Melee + Kayn - Ranged, taricJg.df)
-tree2.taric = tree(WinLoss ~ Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror + Glacial + PTA + Sunderer
-                   + Shurelyias + NoMythic + Ghost + Flash + Melee + Kayn - Ranged, taricJg.df)
-summary(tree2.taric)
-par(mfrow = c(1,1))
-plot(tree2.taric)
-text(tree2.taric, pretty = 0)
+tree.taric2 = tree(WinPred ~ GameTime + ItemsCompleted + Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror +
+                     Glacial + PTA +Sunderer + Shurelyias + NoMythic + Ghost + Flash + Melee - Ranged + Kayn + TowerAdv +
+                     DragonDff + Baron + KillDff)
 
-taric2.pred = predict(tree2.taric, taric.test, type = "class")
-table(taric2.pred, WinPred.test) #this tree is a whopping 93%! accurate for the test data obtained thru VALIDATION method
+summary(tree.taric2) #this tree is 98.4% accurate
+par(mfrow = c(1,1))
+plot(tree.taric2)
+text(tree.taric2, pretty = 0)
+
+taric.pred3 = predict(tree.taric2, taric.test, type = "class")
+table(taric.pred3, WinPred.test) #this tree is 98% accurate for the test data (correctly predicting 148/151 observations)
 
 library (randomForest)
 
 set.seed (1)
 names(taricJg.df)
-bag.taric = randomForest (WinPred ~. -Ranged, taricJg.df, subset = train, mtry = 15,
-                           importance = TRUE) #include 15 predictors and exclude ranged
+bag.taric = randomForest (WinPred ~ Baron + DragonDff + Kills + Deaths + Assists + Kayn, subset = train, mtry = 6,
+                           importance = TRUE) #includes only the predictors from winrate_logistic6.
 
 #WinPred is a FACTOR. randomForest function will assume classifiction forest which is what we want since our response, wins or
 #losses, is QUALITATIVE
 bag.taric
 
-#the prediction seems to be 100% accurate for the training data
+#the prediction seems to be 90% accurate for the training data, as specified by 'subset = train'
 
-yhat.bag <- predict(bag.taric, newdata = taricJg.df[-train , ])
+yhat.bag = predict(bag.taric, newdata = taricJg.df[-train , ])
+plot(yhat.bag)
 table(yhat.bag, WinPred.test)
 
-#the prediction is also 100% accurate for the test data
+#the prediction is 87.42% accurate for the test data
 
 set.seed (1)
-taric.rf = randomForest(WinPred ~., taricJg.df, subset = train, mtry = 7, importance = TRUE)
-yhat.rf <- predict (rf.taric, newdata = taricJg.df[-train , ])
-table(yhat.rf, WinPred.test)
+taric.rf = randomForest(WinPred ~ Baron + DragonDff + Kills + Deaths + Assists + Kayn, subset = train, 
+                        mtry = 2.4495, importance = TRUE)
+#mtry equals the number of variables to be considered for each tree. Since this is a classification problem, mtry = square 
+#root of 6 or 2.4495
+yhat.rf <- predict (taric.rf, newdata = taricJg.df[-train , ])
+table(yhat.rf, WinPred.test) #89.40% accurate for the test data
 
-plot(taric.rf)
+plot(taric.rf) #this plot displays the error rate for increasing numbers of trees. We expect the error to decrease from a high
+#point with a small number of trees to something considerably lower for larger numbers of trees, as shown in this chart
 
-importance (rf.taric)
-varImpPlot (rf.taric)
+importance (taric.rf)
+varImpPlot (taric.rf)
+
+names(taric.rf)
+taric.rf$err.rate
 
 taric.bag <- bagging(
-  formula = WinLoss ~.,
+  formula = WinPred ~ ItemsCompleted + Kills + Deaths + Assists + CSPerMinute + Vision + Conqueror +
+    Glacial + PTA +Sunderer + Shurelyias + NoMythic + Ghost + Flash + Melee + Kayn + TowerAdv +
+    DragonDff + Baron + KillDff,
   data = taricJg.df,
-  nbagg = 500,  
+  nbagg = 10,  
   coob = TRUE,
   control = rpart.control(minsplit = 2, cp = 0)
 )
 taric.bag
 
-#changing the number of trees will change our OOB (out of bag) estimated MSE. For 50 trees its 0.3323,
-#for 100 trees it is 0.3327, for 500 trees its 0.3256, and for 1000 trees its 0.326
-#also for 10 trees it is 0.3652. So generally, increasing the number of trees will decrease the MSE which means our predictions
-#will become more accurate!
+#changing the number of trees will change our OOB (out of bag) estimated MSE. For 50 trees its 0.0299,
+#for 100 trees it is 0.0199, for 500 trees its 0.0166, and for 1000 trees its 0.0233
+#also for 10 trees it is 0.0266.
 
-oob.err<-double(15)
-test.err<-double(15)
-
-for(mtry in 1:15) 
-{
-  rf=randomForest(WinLoss ~. , taricJg.df , subset = train,mtry=mtry,ntree=400) 
-  oob.err[mtry] = rf$mse[400] #Error of all Trees fitted
-  
-  pred<-predict(rf,taricJg.df[-train,]) #Predictions on Test Set for each Tree
-  test.err[mtry]= with(taricJg.df[-train,], mean((WinLoss - pred)^2)) #Mean Squared Test Error
-  
-  cat(mtry," ")
-  
-}
-test.err
-oob.err
-
-matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Mean Squared Error",
-        xlab="Number of Predictors Considered at each Split")
-legend("topright",legend=c("Out of Bag Error","Test Error"),pch=19, col=c("red","blue"))
-
-which.min(oob.err) #out of bag minimum error is at 7 predictors per split
-
-#that is it regarding bagging and now we consider another extension of this: boosting
-
-install.packages("gbm")
-library(gbm)
-
-set.seed (1)
-taric.boost = gbm(WinLoss ~., data = taricJg.df[train, ],
-                       distribution = "bernoulli", n.trees = 5000,
-                       interaction.depth = 4)
-summary(taric.boost)
-plot(taric.boost , i = "Assists")
-plot(taric.boost, i = "Deaths")
-
-yhat.boost <- predict (taric.boost ,
-                       newdata = taricJg.df[-train , ], n.trees = 5000)
-mean((yhat.boost - WinLoss)^2)
+install.packages("keras") #the purpose of installing this package is do preform deep learning, particularly on our
+#taric data
+                   
