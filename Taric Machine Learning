@@ -1,0 +1,70 @@
+library(e1071) #load the e1071 package to begin applying vector classifier models to Taric jungle data
+library(readxl) #this allows us to import our data from excel
+library(caTools)
+library(ROCR)
+library(keras)
+library(ISLR2)
+
+
+setwd("/Users/User/Desktop/League of Legends Excel Databases")
+getwd()
+taricJg_data = read_excel("TaricGames.xlsx")
+taricJg.df = taricJg_data
+
+taricJg.df$WinLoss = factor(taricJg.df$WinLoss, levels = c(0, 1))
+svmfit = svm(WinLoss ~ Kills + Deaths + Assists + GameTime + ItemsCompleted + Flash + Ghost + Vision + Sunderer + Conqueror +
+               Kayn + NoMythic + Glacial + PTA + Baron + DragonDff + KillDff + Ranged + TowerAdv + CSPerMinute +
+               Shurelyias, data = taricJg.df, type = "C-classification", kernel = "linear",
+                cost = 0.1, scale = FALSE)
+?plot.svm
+plot(svmfit, taricJg.df, GameTime ~ KillDff)
+svmfit$index
+summary(svmfit)
+
+svmfit2 = svm(WinLoss ~ Kills + Deaths + Assists + GameTime + ItemsCompleted + Flash + Ghost + Vision + Sunderer + Conqueror +
+               Kayn + NoMythic + Glacial + PTA + Baron + DragonDff + KillDff + Ranged + TowerAdv + CSPerMinute +
+               Shurelyias, data = taricJg.df, type = "C-classification", kernel = "linear",
+             cost = 10, scale = FALSE)
+plot(svmfit2, taricJg.df, GameTime ~ KillDff)
+svmfit2$index
+
+set.seed (1)
+tune.out = tune (svm , WinLoss ~., data = taricJg.df , kernel = "linear",
+                    ranges = list (cost = c (0.001, 0.01, 0.1, 1, 5, 10, 100)))
+summary(tune.out)
+bestmod <- tune.out$best.model #selects the best model
+summary (bestmod) #the best model (lowest classification error) is one with c = 0.01
+
+svmfit3 = svm(WinLoss ~ Kills + Deaths + Assists + GameTime + ItemsCompleted + Flash + Ghost + Vision + Sunderer + Conqueror +
+                Kayn + NoMythic + Glacial + PTA + Baron + DragonDff + KillDff + Ranged + TowerAdv + CSPerMinute +
+                Shurelyias, data = taricJg.df, type = "C-classification", kernel = "linear",
+              cost = 0.01, scale = FALSE)
+plot(svmfit3, taricJg.df, GameTime ~ Vision)
+
+taric.train = sample (1: nrow (taricJg.df), 150) #this partitions taricJg.df's data into a TRAINING set of 150 observations
+taric.test = taricJg.df[-taric.train , ] #151 test observations
+
+Winpred = predict (bestmod, taric.test)
+table (predict = Winpred , truth = taric.test$WinLoss) #accurate 97.35% of the time
+
+Winpred2 = predict (svmfit2, taric.test)
+table (predict = Winpred2, truth = taric.test$WinLoss) #99.34% accurate for the test data
+
+Winpred3 = predict (svmfit, taric.test)
+table (predict = Winpred3, truth = taric.test$WinLoss) #98.68% accurate for the test data
+
+svmfit4 = svm (WinLoss ~., data = taricJg.df[taric.train, ], kernel = "radial",
+                gamma = 1, cost = 1)
+plot(svmfit4, taricJg.df, GameTime ~ KillDff)
+Winpred4 = predict(svmfit4, taric.test)
+table(predict = Winpred4, truth = taric.test$WinLoss) #only 59.6% accurate when using a nonlinear classifier
+
+svmfit5 = svm (WinLoss ~., data = taricJg.df[taric.train, ], kernel = "polynomial",
+               gamma = 1, cost = 1)
+plot(svmfit5, taricJg.df[taric.train, ], GameTime ~ KillDff)
+
+Winpred5 = predict(svmfit5, taric.test)
+table(predict = Winpred5, truth = taric.test$WinLoss) #96.69% accurate for test data
+Winpred6 = predict(svmfit5, taricJg.df[taric.train,])
+table(predict = Winpred6, truth = taricJg.df[taric.train,]$WinLoss) #100% accurate for the training data. As expected, decreased
+#classification accuracy for test data vs training data
