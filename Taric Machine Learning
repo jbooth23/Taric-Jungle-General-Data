@@ -2,9 +2,15 @@ library(e1071) #load the e1071 package to begin applying vector classifier model
 library(readxl) #this allows us to import our data from excel
 library(caTools)
 library(ROCR)
-library(keras)
+library(neuralnet) #loads the neuralnet package to do some attempts at neural networks
 library(ISLR2)
+library(keras)
+library(mlbench)
+library(dplyr)
+library(magrittr)
+library(reticulate)
 
+#in this r file we are going to try to create improved taric jungle models using support vector models (SVMs) and neural networks
 
 setwd("/Users/User/Desktop/League of Legends Excel Databases")
 getwd()
@@ -68,3 +74,37 @@ table(predict = Winpred5, truth = taric.test$WinLoss) #96.69% accurate for test 
 Winpred6 = predict(svmfit5, taricJg.df[taric.train,])
 table(predict = Winpred6, truth = taricJg.df[taric.train,]$WinLoss) #100% accurate for the training data. As expected, decreased
 #classification accuracy for test data vs training data
+
+scaleddata = scale(taricJg.df)
+normalize = function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+maxmindf = as.data.frame(lapply(taricJg.df, normalize))
+# Training and Test Data
+taric.train = maxmindf[1:200, ]
+taric.test = maxmindf[201:301, ]
+
+nnet = neuralnet(WinLoss ~., data=taric.train, hidden=c(12, 10, 5, 3), linear.output=FALSE, threshold=0.01)
+
+#most accurate machine learning model was with four hidden layers with 10, 10, 5, and 3 neurons respectively. 98% accurate
+#for 101 test observations
+
+?neuralnet
+nnet$result.matrix
+plot(nnet, show.weights = F)
+
+#Test the resulting output
+temp_test = subset(taric.test, select = c("GameTime","ItemsCompleted", "Kills", "Deaths", "Assists", "CSPerMinute", "Vision",
+                                           "Conqueror", "Glacial", "PTA", "Sunderer", "Shurelyias", "NoMythic",
+                                           "Ghost", "Flash", "Ranged", "Kayn", "TowerAdv", "DragonDff", "Baron",
+                                           "KillDff"))
+head(temp_test)
+nnet.results = neuralnet::compute(nnet, temp_test)
+results = data.frame(actual = taric.test$WinLoss, prediction = nnet.results$net.result)
+
+results
+
+roundedresults = sapply(results, round, digits=0)
+roundedresultsdf= data.frame(roundedresults)
+attach(roundedresultsdf)
+table(roundedresultsdf) #the neural network is 96.04% accurate for test data
