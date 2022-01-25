@@ -81,10 +81,10 @@ normalize = function(x) {
 }
 maxmindf = as.data.frame(lapply(taricJg.df, normalize))
 # Training and Test Data
-taric.train = maxmindf[1:200, ]
-taric.test = maxmindf[201:301, ]
+taric.train = maxmindf[1:150, ]
+taric.test = maxmindf[151:301, ]
 
-nnet = neuralnet(WinLoss ~., data=taric.train, hidden=c(12, 10, 5, 3), linear.output=FALSE, threshold=0.01)
+nnet = neuralnet(WinLoss ~., data=taric.train, hidden=c(16, 12, 8, 4), linear.output=FALSE, threshold=0.01)
 
 #most accurate machine learning model was with four hidden layers with 10, 10, 5, and 3 neurons respectively. 98% accurate
 #for 101 test observations
@@ -107,4 +107,4 @@ results
 roundedresults = sapply(results, round, digits=0)
 roundedresultsdf= data.frame(roundedresults)
 attach(roundedresultsdf)
-table(roundedresultsdf) #the neural network is 96.04% accurate for test data
+table(roundedresultsdf) #the neural network is 99.33% accurate for test data
