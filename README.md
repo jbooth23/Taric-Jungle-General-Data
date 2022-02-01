@@ -1,1 +1,1 @@
-# Taric-Jungle-General-Data
+# League of Legends Repositories
