@@ -1,0 +1,349 @@
+setwd("/Users/User/Desktop/League of Legends Excel Databases")
+getwd()
+taricJg_data = read_excel("TaricGames.xlsx")
+taricJg.df = taricJg_data
+#quantJg_data = read_excel("TaricQuant.xlsx")
+#quantJg.df = quantJg_data
+
+head(taricJg.df)
+summary(taricJg.df)
+
+plot(taricJg.df)
+
+attach(taricJg.df) #makes it so much easier to plot things
+
+#we are working with a sample of 301 out of 1900 Taric jungle games for Season 11 data. Begin by making some
+#histograms and plots to visualize the data
+
+names(taricJg.df) #lists all of our variables in the dataset, very useful
+
+#now we create 22 variables to make our lives easier
+
+GameTime = taricJg.df$GameTime
+ItemsCompleted = taricJg.df$ItemsCompleted
+Kills = taricJg.df$Kills
+Deaths = taricJg.df$Deaths
+Assists = taricJg.df$Assists
+CSPerMinute = taricJg.df$CSPerMinute
+Vision = taricJg.df$Vision
+Conqueror = taricJg.df$Conqueror
+Glacial = taricJg.df$Glacial
+PTA = taricJg.df$PTA
+Sunderer = taricJg.df$Sunderer
+Shurelyas = taricJg.df$Shurelyias
+NoMythic = taricJg.df$NoMythic
+Ghost = taricJg.df$Ghost
+Flash = taricJg.df$Flash
+Ranged = taricJg.df$Ranged
+Kayn = taricJg.df$Kayn
+WinLoss = taricJg.df$WinLoss
+TowerAdv = taricJg.df$TowerAdv
+DragonDff = taricJg.df$DragonDff
+Baron = taricJg.df$Baron
+KillDff = taricJg.df$KillDff
+
+par(mfrow = c(2,2))
+
+hist(GameTime, col = "gray", border = "black", xlab = "Game Time (Minutes)", ylab = "Frequency",
+     main = "Game Time Frequencies", breaks = 6, xlim = c(10, 45), ylim = c(0, 100)) #as we can see, 
+#game times follow an approximately normal distribution
+
+hist(ItemsCompleted, col = "light green", border = "gray", xlab = "Number of Completed Legendary Items
+     and Boots", ylab = "Frequency", main = "Frequency of Completed Items", breaks = 8, xlim = c(0, 6),
+     ylim = c(0, 120))
+
+hist(Kills, col = "Maroon", border = "black", xlab = "Number of Kills", ylab = "Frequency", main = "Kill
+     Frequencies", breaks = 15, xlim = c(0, 15), ylim = c(0, 120))
+
+hist(Deaths, col = "Dark Gray", border = "beige", xlab = "Number of Deaths", ylab = "Frequency", main = 
+       "Death Frequencies", breaks = 14, xlim = c(0, 14), ylim = c(0, 50))
+
+hist(Assists, col = "orange", border = "gray", xlab = "Number of Assists", ylab = "Frequency", main = 
+       "Assist Frequencies", breaks = 11, xlim = c(0, 36), ylim = c(0, 100))
+
+hist(CSPerMinute, col = "Light Blue", border = "black", xlab = "Creep Score (CS) per Minute", ylab = 
+       "Frequency", main = "Frequency of CS Scores", breaks = 10, xlim = c(3, 9), ylim = c(0, 80))
+
+#creep score is also approximately normally distributed
+
+hist(Vision, col = "green", border = "black", xlab = "Total Vision Score", ylab = "Frequency", main = 
+       "Total Vision Score Frequencies", breaks = 10, xlim = c(10, 70), ylim = c(0, 70))
+
+#forms a right tailed distribution (almost normal)
+
+hist(TowerAdv, col = "beige", border = "light gray", xlab = "Tower Advantage", ylab = "Frequency", main 
+     = "Tower Advantage Frequencies", breaks = 15, xlim = c(-15, 15), ylim = c(0, 40))
+
+par(mfrow = c(2,1))
+
+hist(KillDff, col = "dark red", border = "light gray", xlab = "Team Kill Advantage", ylab = "Frequency",
+     main = "Team Kill Advantage Frequencies", breaks = 15, xlim = c(-35, 35), ylim = c(0, 50))
+
+hist(DragonDff, col = "dark blue", border = "gray", xlab = "Team Dragon Advantage", ylab = "Frequency
+     ", main = "Team Dragon Advantage Frequencies", breaks = 8, xlim = c(-5, 6), ylim = c(0, 50))
+
+#we will visualize the binary QUALITATIVE variables using barplots below
+
+par(mfrow = c(1,1))
+
+KDA_data = data.frame(Kills, Deaths, Assists) #new dataframe
+
+pairs(KDA_data)
+
+table(Conqueror) #conqueror was taken in 32 games and not taken in 269 games
+
+conq.data = cbind(c(15, 17),
+                  c(148, 121))
+colnames(conq.data) = c("Conqueror Taken", "Conqueror Not Taken")
+rownames(conq.data) = c("Wins", "Losses")
+
+conq.data #this is what we want and what we will proceed to plot below
+
+barplot(height = conq.data,
+        beside = TRUE,                        # Put the bars next to each other
+        legend.text = TRUE,                   # Add a legend
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Conqueror",
+        ylab = "Total Wins or Losses",
+        xlab = "Rune Choice",
+        ylim = c(0, 180))
+
+baron.data = cbind(c(108, 19),
+                   c(55, 119))
+colnames(baron.data) = c("Baron Taken", "Baron Not Taken")
+rownames(baron.data) = c("Wins", "Losses")
+
+baron.data
+
+barplot(height = baron.data,
+        beside = TRUE,              
+        legend.text = TRUE,                   
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Baron",
+        ylab = "Total Wins or Losses",
+        xlab = "Baron Status",
+        ylim = c(0, 160))
+
+conq2.data = cbind(c(32),
+                   c(269))
+colnames(conq2.data) = c("Conqueror Taken", "Conqueror Not Taken")
+rownames(conq2.data) = c("Total Games")
+
+conq2.data
+
+barplot(height = conq2.data,
+        beside = TRUE,              
+        legend.text = FALSE,                 
+        col = c(transparent("orange", .3)),
+        main = "Games Taken, Conqueror",
+        ylab = "Total Number of Games",
+        xlab = "Rune Choice",
+        ylim = c(0, 300))
+
+baron2.data = cbind(c(127),
+                   c(174))
+colnames(conq2.data) = c("Baron Taken", "Baron Not Taken")
+rownames(conq2.data) = c("Total Games")
+
+baron2.data
+
+barplot(height = baron2.data,
+        beside = TRUE,
+        legend.text = FALSE,
+        col = c(transparent("violet", .3)),
+        main = "Games Taken, Baron",
+        ylab = "Total Number of Games",
+        xlab = "Baron Status",
+        ylim = c(0, 200))
+
+sunderer.data = cbind(c(47, 24),
+                  c(116, 114))
+colnames(sunderer.data) = c("Sunderer Built", "Sunderer Not Built")
+rownames(sunderer.data) = c("Wins", "Losses")
+
+sunderer.data #this is what we want and what we will proceed to plot below
+
+barplot(height = sunderer.data,
+        beside = TRUE,                        # Put the bars next to each other
+        legend.text = TRUE,                   # Add a legend
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Sunderer",
+        ylab = "Total Wins or Losses",
+        xlab = "Item Choice",
+        ylim = c(0, 150))
+
+shurelyas.data = cbind(c(100, 92),
+                       c(63, 46))
+colnames(shurelyas.data) = c("Shurelyas Built", "Shurelyas Not Built")
+rownames(shurelyas.data) = c("Wins", "Losses")
+
+shurelyas.data #this is what we want and what we will proceed to plot below
+
+barplot(height = shurelyas.data,
+        beside = TRUE,                        # Put the bars next to each other
+        legend.text = TRUE,                   # Add a legend
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Shurelyas",
+        ylab = "Total Wins or Losses",
+        xlab = "Item Choice",
+        ylim = c(0, 120))
+
+names(taricJg.df)
+
+PTA.data = cbind(c(99, 75),
+                  c(64, 63))
+colnames(PTA.data) = c("PTA Taken", "PTA Not Taken")
+rownames(PTA.data) = c("Wins", "Losses")
+
+PTA.data #this is what we want and what we will proceed to plot below
+
+barplot(height = PTA.data,
+        beside = TRUE,                        # Put the bars next to each other
+        legend.text = TRUE,                   # Add a legend
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses, PTA",
+        ylab = "Total Wins or Losses",
+        xlab = "Rune Choice",
+        ylim = c(0, 110))
+
+ranged.data = cbind(c(120, 93),
+                  c(43, 45))
+colnames(ranged.data) = c("vs Melee Jungler", "vs Ranged Jungler")
+rownames(ranged.data) = c("Wins", "Losses")
+
+ranged.data #this is what we want and what we will proceed to plot below
+
+barplot(height = ranged.data,
+        beside = TRUE,                        # Put the bars next to each other
+        legend.text = TRUE,                   # Add a legend
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Ranged or Melee Jungler",
+        ylab = "Total Wins or Losses",
+        xlab = "Jungle Matchup",
+        ylim = c(0, 180))
+
+gametime.data = cbind(c(71, 67),
+                      c(92, 72))
+colnames(gametime.data) = c("10-25", "25-45")
+rownames(gametime.data) = c("Wins", "Losses")
+
+ranged.data #this is what we want and what we will proceed to plot below
+
+barplot(height = gametime.data,
+        beside = TRUE,                        # Put the bars next to each other
+        legend.text = TRUE,                   # Add a legend
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses by Game Time",
+        ylab = "Total Wins or Losses",
+        xlab = "Game Time (Minutes)",
+        ylim = c(0, 100))
+
+completeditems.data = cbind(c(75, 91),
+                    c(88, 47))
+colnames(completeditems.data) = c("0-3", "4-6")
+rownames(completeditems.data) = c("Wins", "Losses")
+
+completeditems.data #this is what we want and what we will proceed to plot below
+
+barplot(height = completeditems.data,
+        beside = TRUE,                        # Put the bars next to each other
+        legend.text = TRUE,                   # Add a legend
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Number of Completed Items",
+        ylab = "Total Wins or Losses",
+        xlab = "Number of Completed Items",
+        ylim = c(0, 100))
+
+killadv.data = cbind(c(7, 132),
+                     c(156, 6))
+colnames(killadv.data) = c("-30 to -1", "0 to 30")
+rownames(killadv.data) = c("Wins", "Losses")
+
+killadv.data
+
+barplot(height = killadv.data,
+        beside = TRUE,                        # Put the bars next to each other
+        legend.text = TRUE,                   # Add a legend
+        col = c(transparent("light blue", .3), 
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Total Kill Difference",
+        ylab = "Total Wins or Losses",
+        xlab = "Total Kill Difference between Teams",
+        ylim = c(0, 170))
+
+dragadv.data = cbind(c(14, 89),
+                c(149, 49))
+colnames(dragadv.data) = c("-5 to -1", "0 to 5")
+rownames(dragadv.data) = c("Wins", "Losses")
+
+dragadv.data
+
+barplot(height = dragadv.data,
+        beside = TRUE,
+        legend.text = TRUE,
+        col = c(transparent("light blue", .3),
+                transparent("dark red", .3)),
+                main = "Wins and Losses, Total Dragon Advantage",
+                ylab = "Total Wins or Losses",
+                xlab = "Total Dragon Advantage between Teams",
+                ylim = c(0, 160))
+
+summoner.data = cbind(c(120, 94),
+                     c(41, 41))
+colnames(summoner.data) = c("Ghost", "Flash")
+rownames(summoner.data) = c("Wins", "Losses")
+
+summoner.data
+
+barplot(height = summoner.data,
+        beside = TRUE,
+        legend.text = TRUE,
+        col = c(transparent("light blue", .3),
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Secondary Summoner",
+        ylab = "Total Wins or Losses",
+        xlab = "Secondary Summoner",
+        ylim = c(0, 140))
+
+deaths.data = cbind(c(121, 10),
+                      c(40, 128))
+colnames(deaths.data) = c("0-4", "5 or more")
+rownames(deaths.data) = c("Wins", "Losses")
+
+summoner.data
+
+barplot(height = deaths.data,
+        beside = TRUE,
+        legend.text = TRUE,
+        col = c(transparent("light blue", .3),
+                transparent("dark red", .3)),
+        main = "Wins and Losses, Lightrocket2 Deaths",
+        ylab = "Total Wins or Losses",
+        xlab = "Number of Deaths",
+        ylim = c(0, 160))
+
+#and now we model some box-plots of this data
+
+boxplot(Kills, main = "Mean kills, lightrocket2 Taric jungle", xlab = "Number of Kills", col = "red",
+        border = "black", horizontal = TRUE)
+
+boxplot(Kills, Deaths, Assists, main = "Mean Kills, Deaths, and Assists for lightrocket2", at = c(1,2,3), 
+        xlab = "Count", col = c("red", "gray", "brown"), names = c("Kills", "Deaths", "Assists"), 
+        horizontal = TRUE)
+
+boxplot(Kills,
+        main = "Mean ozone in parts per billion at Roosevelt Island",
+        xlab = "Parts Per Billion",
+        ylab = "Ozone",
+        col = "Red",
+        border = "gray",
+        horizontal = TRUE,
+)
